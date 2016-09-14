@@ -4,7 +4,7 @@ if which apk; then
 fi
 if which apt-get; then
   apt-get update;
-  apt-get install python python-pip git
+  apt-get install -y python python-pip git
 fi
 git clone https://github.com/alancnet/container-utils /container-utils
 mv /container-utils/bin/* /usr/local/bin/
