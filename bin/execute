@@ -1,0 +1,15 @@
+#!/bin/bash
+function print-usage {
+  echo "Skips all arguments until -exec, then executes the command that follows."
+  echo "Usage: execute ... -exec <command ...>"
+}
+
+if [ "$1" == "--help" ]; then
+  print-usage
+fi
+
+while ! ([ "$1" == "-exec" ] || [ -z $1 ]); do shift; done
+shift
+if ! [ -z "$1" ]; then
+  $@
+fi

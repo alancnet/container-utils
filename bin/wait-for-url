@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# $1 => url
+# $2 => timeout in seconds, default = 60s
+
+service_name="url"
+timeout_max_seconds=${2:-60}
+delay=2
+
+function print-usage {
+  echo "Usage: wait-for-${service_name}.sh http://<${service_name}-host>:<port> [-exec <command>]"
+}
+
+start_time=$(date +%s)
+let timeout=$start_time+$timeout_max_seconds
+
+if [ -z "$1" ]; then
+  print-usage
+  exit 1
+fi
+
+service=$1
+
+echo "Waiting for ${service_name} at: $service"
+
+function test_service {
+  if curl -i $url 2>/dev/null | grep -q "200 OK"; then
+    return 0 # success
+  else
+    return 1 # failure
+  fi
+}
+
+function poll {
+  if test_service; then
+    echo "$(date) -- Found $service_name"
+  else
+    if [ "$timeout" -le "$(date +%s)" ]; then
+      echo "Didn't find $service_name within $timeout_max_seconds seconds. Exiting."
+      exit 3
+    fi
+
+    echo "$(date) -- Didn't find ${service_name}. Sleeping for $delay sec."
+    sleep $delay
+
+    poll
+  fi
+}
+
+poll
+
+# Execute followup command
+execute $@

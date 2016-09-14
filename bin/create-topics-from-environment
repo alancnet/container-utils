@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$config" ]; then
+  echo "create-topics-from-environment.sh requires environment variable 'config' set with yaml."
+  exit 1
+fi
+
+echo "$config" | create-topics $@

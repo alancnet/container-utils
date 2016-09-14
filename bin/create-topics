@@ -1,0 +1,30 @@
+#!/bin/bash
+
+cat /dev/stdin | yaml2json > tmp.json
+
+function topics {
+  cat tmp.json | jq -r '.topics | to_entries | .[].key'
+}
+
+function topicDef {
+  cat tmp.json | jq '.topics["'$1'"] | to_entries | .[]'
+}
+
+function getTopic {
+  configs=`topicDef "$1" | jq -r 'select(.key | (contains(".") or inside("preallocate")))'`
+  params=`topicDef "$1" | jq -r 'select(.key | (contains(".") or inside("preallocate") | not))'`
+  echo "$configs" | jq -r '"--config "+.key+"="+(.value | tostring)'
+  echo "$params" | jq -r '"--"+.key+" "+(.value | tostring)'
+#  cat tmp.json | jq -r '.topics["'$1'"] | to_entries | map("--"+.key+" "+(.value | tostring)) | .[]'
+}
+
+topics | while read topic; do
+  # TODO: use --alter if topic already exists
+  # TODO (maybe): Don't use --alter if topic configuration is up-to-date
+  cmd="kafka-topics --create --topic \"$topic\" $(getTopic $topic);"
+  echo $cmd
+  $cmd
+
+done
+
+execute $@
